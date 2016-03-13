@@ -28,7 +28,6 @@ public class Server {
                     "?user=" + USER +
                     "&password=" + PASSWORD
             );
-            System.out.println("The capitalization server is running.");
             try (ServerSocket listener = new ServerSocket(9898)) {
                 while (true) {
                     new RequestHandler(this, listener.accept()).start();
@@ -45,13 +44,23 @@ public class Server {
 
     public String addUser(JSONObject requestJSON) {
         JSONObject result = new JSONObject();
-        if(contains(requestJSON, "user_id", "name")) {
+        if(contains(requestJSON, "user_name")) {
             try {
-                String sql = "INSERT INTO users (user_id, user_name) VALUES(?, ?)";
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setInt(1, requestJSON.getInt("user_id"));
-                preparedStatement.setString(2, requestJSON.getString("name"));
+                String sql = "INSERT INTO users (user_name) VALUES(?)";
+                PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                preparedStatement.setString(1, requestJSON.getString("user_name"));
                 result.put("successful", preparedStatement.executeUpdate() > 0);
+                if(preparedStatement.executeUpdate() > 0) {
+                    ResultSet resultSet = preparedStatement.getGeneratedKeys();
+                    if(resultSet.next()) {
+                        result.put("successful", true);
+                        result.put("user_id", resultSet.getInt(1));
+                    } else {
+                        result.put("successful", false);
+                    }
+                } else {
+                    result.put("successful", false);
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
                 result.put("successful", false);
@@ -222,7 +231,7 @@ public class Server {
         JSONObject result = new JSONObject();
         if(contains(requestJSON, "user_id", "game_id", "team_id")) {
             try {
-                String sql = "SELECT messages.message_id, users.user_id, users.user_name, messages.message FROM users, players, games, messages WHERE games.game_id=? AND games.game_id=messages.game_id AND games.game_id=players.game_id AND messages.user_id=users.user_id AND users.user_id=players.user_id";
+                String sql = "SELECT message_id, user_id, user_name, message FROM users natural join messages WHERE game_id=?";
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setInt(1, requestJSON.getInt("game_id"));
                 ResultSet resultSet = preparedStatement.executeQuery();

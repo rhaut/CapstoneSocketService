@@ -11,6 +11,7 @@ public class RequestHandler extends Thread {
     private Server server;
     private Socket socket;
     private String id;
+    private int userId;
 
     public RequestHandler(Server server, Socket socket) {
         this.server = server;
@@ -31,7 +32,7 @@ public class RequestHandler extends Thread {
                 JSONObject requestJSON = new JSONObject(input);
                 request = requestJSON.getString("request");
                 String result = "";
-                if(request.equals("add_user")) {
+                if(request.equals("create_user")) {
                     result = this.server.addUser(requestJSON);
                 } else if(request.equals("create_game")) {
                     result = this.server.createGame(requestJSON);
