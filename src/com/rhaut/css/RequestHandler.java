@@ -52,6 +52,8 @@ public class RequestHandler extends Thread {
                     result = this.server.sendMessage(requestJSON);
                 } else if(request.equals("get_messages")) {
                     result = this.server.getMessages(requestJSON);
+                } else if(request.equals("login")) {
+                    result = this.server.login(requestJSON);
                 }
                 this.server.log(result);
                 out.println(result);

@@ -42,6 +42,26 @@ public class Server {
         }
     }
 
+    public String login(JSONObject requestJSON) {
+        JSONObject result = new JSONObject();
+        if(contains(requestJSON, "username", "password")) {
+            try {
+                String sql = "SELECT id FROM users WHERE user_name=? AND password=?";
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, requestJSON.getInt("username"));
+                preparedStatement.setString(2, requestJSON.getInt("password"));
+                ResultSet resultSet = preparedStatement.executeQuery();
+                result = new JSONObject();
+                JSONObject user = new JSONObject();
+                result.put("id", resultSet.getInt(1));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                result.put("id", new JSONObject());
+            }
+        }
+        return result.toString();
+    }
+
     public String addUser(JSONObject requestJSON) {
         JSONObject result = new JSONObject();
         if(contains(requestJSON, "user_name")) {
